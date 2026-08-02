@@ -60,6 +60,12 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'bank-b-auth-storage',
+      // ONLY persist tokens so account balance is NEVER cached in localStorage!
+      // All balances and transactions are fetched LIVE from real PostgreSQL database!
+      partialize: (state) => ({
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
+      }),
     }
   )
 );

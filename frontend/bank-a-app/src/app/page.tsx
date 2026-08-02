@@ -6,42 +6,65 @@ import { AuthModal } from '@/components/AuthModal';
 import { Navbar } from '@/components/Navbar';
 import { Dashboard } from '@/components/Dashboard';
 import { getProfileApi } from '@/lib/api';
-import toast from 'react-hot-toast';
+import { Database, ShieldCheck } from 'lucide-react';
 
 export default function HomePage() {
-  const { isAuthenticated, setAuth, logout, user, account } = useAuthStore();
+  const { isAuthenticated, setAuth, logout, user, account, accessToken } = useAuthStore();
   const [refreshing, setRefreshing] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const refreshAccount = useCallback(async () => {
-    if (!isAuthenticated) return;
+    if (!accessToken) {
+      setInitialLoading(false);
+      return;
+    }
     setRefreshing(true);
     try {
       const res = await getProfileApi();
       if (res.user && res.account) {
-        setAuth(res.user, res.account, useAuthStore.getState().accessToken || '', useAuthStore.getState().refreshToken || '');
+        setAuth(
+          res.user,
+          res.account,
+          useAuthStore.getState().accessToken || '',
+          useAuthStore.getState().refreshToken || ''
+        );
       }
     } catch (err) {
-      // Don't toast on auto refresh error
+      logout();
     } finally {
       setRefreshing(false);
+      setInitialLoading(false);
     }
-  }, [isAuthenticated, setAuth]);
+  }, [accessToken, setAuth, logout]);
 
   useEffect(() => {
-    if (mounted && isAuthenticated) {
-      refreshAccount();
+    if (mounted) {
+      if (accessToken) {
+        refreshAccount();
+      } else {
+        setInitialLoading(false);
+      }
     }
-  }, [mounted, isAuthenticated, refreshAccount]);
+  }, [mounted, accessToken, refreshAccount]);
 
-  if (!mounted) {
+  if (!mounted || (initialLoading && accessToken)) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-slate-400">
-        Loading BanhLuy Banking System...
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 p-6 text-center">
+        <div className="w-14 h-14 rounded-2xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 mb-4 animate-bounce">
+          <Database size={28} />
+        </div>
+        <div className="text-base font-bold text-white">
+          Connecting to Real PostgreSQL 17 Database...
+        </div>
+        <div className="text-xs text-slate-400 mt-1 flex items-center gap-1.5">
+          <ShieldCheck size={14} className="text-emerald-400" />
+          <span>Verifying ACID Ledger • Zero localStorage caching</span>
+        </div>
       </div>
     );
   }
@@ -56,7 +79,7 @@ export default function HomePage() {
       <main className="flex-1">
         <Dashboard onBalanceChange={refreshAccount} />
       </main>
-      <footer className="border-t border-white/5 py-6 text-center text-xs text-slate-500">
+      <footer className="border-t border-white/5 py-6 text-center text-xs text-slate-500 font-mono">
         BanhLuy Dual-Bank Interoperability Ecosystem — Bank A Sapphire System © {new Date().getFullYear()}
       </footer>
     </div>

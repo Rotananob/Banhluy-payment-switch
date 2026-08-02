@@ -60,6 +60,12 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'bank-a-auth-storage',
+      // ONLY persist auth token so account balance is NEVER stored in localStorage!
+      // All user profiles & balance are fetched LIVE from real PostgreSQL database!
+      partialize: (state) => ({
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
+      }),
     }
   )
 );

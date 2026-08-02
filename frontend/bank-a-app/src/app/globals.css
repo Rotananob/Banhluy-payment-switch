@@ -1,8 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 :root {
-  --bg-primary: #050b14;
-  --bg-card: rgba(15, 23, 42, 0.75);
+  --bg-primary: #040814;
+  --bg-secondary: #080e22;
+  --bg-card: rgba(13, 22, 45, 0.75);
   --bg-glass: rgba(255, 255, 255, 0.04);
   --border-glass: rgba(255, 255, 255, 0.08);
   --blue-primary: #2563eb;
@@ -23,26 +24,47 @@ body {
   font-family: 'Outfit', sans-serif;
   background-color: var(--bg-primary);
   background-image: 
-    radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.12) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
-    linear-gradient(180deg, #050b14 0%, #03070c 100%);
+    radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.18) 0%, transparent 45%),
+    radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.12) 0%, transparent 45%),
+    linear-gradient(180deg, #040814 0%, #030610 100%);
   color: var(--text-main);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(4, 8, 20, 0.9);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(37, 99, 235, 0.5);
 }
 
 .glass-card {
   background: var(--bg-card);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(24px);
   border: 1px solid var(--border-glass);
   border-radius: 24px;
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glow-card {
   box-shadow: 
-    0 20px 40px -15px rgba(0, 0, 0, 0.6),
+    0 25px 50px -12px rgba(0, 0, 0, 0.7),
     0 0 60px -15px var(--blue-glow);
 }
 
@@ -58,13 +80,13 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.4);
+  box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.5);
   transition: all 0.25s ease;
 }
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 15px 30px -5px rgba(37, 99, 235, 0.6);
+  box-shadow: 0 15px 30px -5px rgba(37, 99, 235, 0.7);
 }
 
 .btn-primary:disabled {
@@ -74,10 +96,10 @@ body {
 
 .input-field {
   width: 100%;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.45);
   border: 1px solid var(--border-glass);
-  border-radius: 12px;
-  padding: 14px 16px;
+  border-radius: 14px;
+  padding: 14px 18px;
   color: #fff;
   font-size: 1rem;
   transition: all 0.2s ease;
@@ -86,14 +108,14 @@ body {
 .input-field:focus {
   outline: none;
   border-color: var(--blue-primary);
-  box-shadow: 0 0 15px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.3);
 }
 
 .badge-bank-a {
   background: rgba(37, 99, 235, 0.15);
-  color: #60a5fa;
-  border: 1px solid rgba(37, 99, 235, 0.3);
-  padding: 4px 10px;
+  color: #93c5fd;
+  border: 1px solid rgba(37, 99, 235, 0.35);
+  padding: 4px 12px;
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 700;
@@ -103,25 +125,44 @@ body {
 
 .tab-btn {
   padding: 12px 20px;
-  border-radius: 12px;
+  border-radius: 14px;
   font-weight: 600;
   color: var(--text-dim);
   background: transparent;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
   display: flex;
   align-items: center;
   gap: 8px;
+  white-space: nowrap;
 }
 
 .tab-btn.active {
   color: #fff;
-  background: rgba(37, 99, 235, 0.15);
-  border-color: rgba(37, 99, 235, 0.3);
+  background: rgba(37, 99, 235, 0.18);
+  border-color: rgba(37, 99, 235, 0.35);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
 
 .tab-btn:hover:not(.active) {
   color: #fff;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Mobile responsive bottom navigation */
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(8, 14, 34, 0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border-glass);
+    padding: 8px 12px;
+    z-index: 100;
+    display: flex;
+    justify-content: space-around;
+  }
 }
