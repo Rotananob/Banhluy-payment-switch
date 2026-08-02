@@ -1,0 +1,218 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum BankType {
+  BANK_A
+  BANK_B
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  TRANSFER_OUT
+  TRANSFER_IN
+  FEE
+  REVERSAL
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REVERSED
+}
+
+enum KhqrStatus {
+  PENDING
+  PAID
+  EXPIRED
+  CANCELLED
+}
+
+enum SwitchEventType {
+  TRANSFER_INITIATED
+  TRANSFER_VALIDATED
+  TRANSFER_SETTLED
+  TRANSFER_FAILED
+  TRANSFER_REVERSED
+}
+
+model User {
+  id          String   @id @default(uuid()) @db.Uuid
+  bankType    BankType
+  phoneNumber String   @db.VarChar(20)
+  pinHash     String   @db.VarChar(255)
+  fullName    String   @db.VarChar(255)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  accounts      Account[]
+  refreshTokens RefreshToken[]
+
+  @@unique([bankType, phoneNumber])
+  @@index([bankType])
+  @@map("users")
+}
+
+model Account {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @db.Uuid
+  bankType      BankType
+  accountNumber String   @unique @db.VarChar(20)
+  balanceCents  BigInt   @default(0)
+  currency      String   @default("USD") @db.VarChar(3)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user                     User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions             Transaction[]
+  sentTransfers            Transfer[]            @relation("SenderAccount")
+  receivedTransfers        Transfer[]            @relation("ReceiverAccount")
+  khqrPaymentRequests      KhqrPaymentRequest[]
+
+  @@index([userId])
+  @@index([bankType])
+  @@index([bankType, accountNumber])
+  @@map("accounts")
+}
+
+model Transaction {
+  id                 String            @id @default(uuid()) @db.Uuid
+  accountId          String            @db.Uuid
+  bankType           BankType
+  type               TransactionType
+  status             TransactionStatus @default(PENDING)
+  amountCents        BigInt
+  balanceAfterCents  BigInt?
+  referenceId        String?           @db.VarChar(100)
+  metadata           Json?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  account    Account     @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  transfer   Transfer?   @relation("TransferTransaction")
+  atmDeposit AtmDeposit?
+
+  @@index([accountId])
+  @@index([bankType])
+  @@index([type])
+  @@index([status])
+  @@index([referenceId])
+  @@index([createdAt])
+  @@map("transactions")
+}
+
+model Transfer {
+  id                  String            @id @default(uuid()) @db.Uuid
+  idempotencyKey      String            @unique @db.VarChar(100)
+  senderAccountId     String            @db.Uuid
+  receiverAccountId   String            @db.Uuid
+  senderBankType      BankType
+  receiverBankType    BankType
+  amountCents         BigInt
+  feeCents            BigInt            @default(0)
+  isCrossBank         Boolean           @default(false)
+  status              TransactionStatus @default(PENDING)
+  switchReference     String?           @db.VarChar(100)
+  description         String?           @db.VarChar(500)
+  transactionId       String?           @unique @db.Uuid
+  metadata            Json?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  senderAccount   Account          @relation("SenderAccount", fields: [senderAccountId], references: [id])
+  receiverAccount Account          @relation("ReceiverAccount", fields: [receiverAccountId], references: [id])
+  transaction     Transaction?     @relation("TransferTransaction", fields: [transactionId], references: [id])
+  switchEvents    SwitchEventLog[]
+
+  @@index([senderAccountId])
+  @@index([receiverAccountId])
+  @@index([senderBankType])
+  @@index([receiverBankType])
+  @@index([isCrossBank])
+  @@index([status])
+  @@index([switchReference])
+  @@index([createdAt])
+  @@map("transfers")
+}
+
+model KhqrPaymentRequest {
+  id                String     @id @default(uuid()) @db.Uuid
+  merchantAccountId String     @db.Uuid
+  payload           String     @db.Text
+  payloadHash       String     @unique @db.VarChar(64)
+  amountCents       BigInt
+  currency          String     @default("USD") @db.VarChar(3)
+  status            KhqrStatus @default(PENDING)
+  expiresAt         DateTime
+  paidAt            DateTime?
+  metadata          Json?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  merchantAccount Account @relation(fields: [merchantAccountId], references: [id])
+
+  @@index([merchantAccountId])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("khqr_payment_requests")
+}
+
+model AtmDeposit {
+  id             String            @id @default(uuid()) @db.Uuid
+  targetBankType BankType
+  accountNumber  String            @db.VarChar(20)
+  amountCents    BigInt
+  status         TransactionStatus @default(PENDING)
+  transactionId  String?           @unique @db.Uuid
+  metadata       Json?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  transaction Transaction? @relation(fields: [transactionId], references: [id])
+
+  @@index([targetBankType])
+  @@index([accountNumber])
+  @@index([status])
+  @@map("atm_deposits")
+}
+
+model SwitchEventLog {
+  id           String          @id @default(uuid()) @db.Uuid
+  eventType    SwitchEventType
+  transferId   String?         @db.Uuid
+  sourceModule String          @db.VarChar(100)
+  payload      Json?
+  createdAt    DateTime        @default(now())
+
+  transfer Transfer? @relation(fields: [transferId], references: [id])
+
+  @@index([eventType])
+  @@index([transferId])
+  @@index([sourceModule])
+  @@index([createdAt])
+  @@map("switch_event_logs")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  tokenHash String   @unique @db.VarChar(255)
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
