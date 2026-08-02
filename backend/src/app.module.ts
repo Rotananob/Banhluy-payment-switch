@@ -10,6 +10,8 @@ import { BankAModule } from './bank-a/bank-a.module';
 import { BankBModule } from './bank-b/bank-b.module';
 import { AtmModule } from './atm/atm.module';
 import { CentralSwitchModule } from './central-switch/central-switch.module';
+import { TransferModule } from './transfer/transfer.module';
+import { DepositModule } from './deposit/deposit.module';
 import { HealthModule } from './health/health.module';
 
 @Module({
@@ -39,6 +41,8 @@ import { HealthModule } from './health/health.module';
     BankBModule,
     AtmModule,
     CentralSwitchModule,
+    TransferModule,
+    DepositModule,
     HealthModule,
   ],
 })

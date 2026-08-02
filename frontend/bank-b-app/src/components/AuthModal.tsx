@@ -58,12 +58,13 @@ export const AuthModal: React.FC = () => {
         toast.success(`Welcome back, ${res.user.fullName}! Connected to PostgreSQL.`);
       }
     } catch (err: any) {
-      const errorMsg =
-        err.response?.data?.message ||
-        'Authentication failed. Verify credentials.';
-      toast.error(
-        Array.isArray(errorMsg) ? errorMsg.join(', ') : errorMsg
-      );
+      const raw = err.response?.data?.message;
+      const errorMsg = Array.isArray(raw)
+        ? raw.join(', ')
+        : typeof raw === 'string'
+          ? raw
+          : 'Authentication failed. Verify credentials.';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }

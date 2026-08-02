@@ -111,7 +111,7 @@ export const transferIntraBankApi = async (
   amount: number,
   description?: string
 ) => {
-  const res = await apiClient.post('/bank-a/transfer', {
+  const res = await apiClient.post('/transfer', {
     toAccountNumber,
     amount,
     description,

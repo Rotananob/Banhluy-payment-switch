@@ -26,7 +26,7 @@ export const depositToAccount = async (
   accountNumber: string,
   amount: number
 ): Promise<AtmDepositResponse> => {
-  const response = await apiClient.post<AtmDepositResponse>('/atm/deposit', {
+  const response = await apiClient.post<AtmDepositResponse>('/deposit', {
     accountNumber,
     amount,
   });

@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 
 export interface UserProfile {
   id: string;
@@ -32,40 +31,29 @@ interface AuthState {
   logout: () => void;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
+// 100% IN-MEMORY ZUSTAND STORE — ZERO LOCALSTORAGE PER RULE 1
+// All balances, transactions, and profiles are fetched LIVE from PostgreSQL via HTTP Axios.
+export const useAuthStore = create<AuthState>()((set) => ({
+  user: null,
+  account: null,
+  accessToken: null,
+  refreshToken: null,
+  isAuthenticated: false,
+  setAuth: (user, account, accessToken, refreshToken) =>
+    set({
+      user,
+      account,
+      accessToken,
+      refreshToken,
+      isAuthenticated: true,
+    }),
+  updateAccount: (account) => set({ account }),
+  logout: () =>
+    set({
       user: null,
       account: null,
       accessToken: null,
       refreshToken: null,
       isAuthenticated: false,
-      setAuth: (user, account, accessToken, refreshToken) =>
-        set({
-          user,
-          account,
-          accessToken,
-          refreshToken,
-          isAuthenticated: true,
-        }),
-      updateAccount: (account) => set({ account }),
-      logout: () =>
-        set({
-          user: null,
-          account: null,
-          accessToken: null,
-          refreshToken: null,
-          isAuthenticated: false,
-        }),
     }),
-    {
-      name: 'bank-a-auth-storage',
-      // ONLY persist auth token so account balance is NEVER stored in localStorage!
-      // All user profiles & balance are fetched LIVE from real PostgreSQL database!
-      partialize: (state) => ({
-        accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
-      }),
-    }
-  )
-);
+}));

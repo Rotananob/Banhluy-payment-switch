@@ -54,11 +54,13 @@ export default function AtmPage() {
         `Successfully deposited $${result.amount.toFixed(2)} to ${result.accountHolder}`
       );
     } catch (err: any) {
-      const errorMsg =
-        err.response?.data?.message || 'Deposit failed. Check account number.';
-      toast.error(
-        Array.isArray(errorMsg) ? errorMsg.join(', ') : errorMsg
-      );
+      const raw = err.response?.data?.message;
+      const errorMsg = Array.isArray(raw)
+        ? raw.join(', ')
+        : typeof raw === 'string'
+          ? raw
+          : 'Deposit failed. Check account number.';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }

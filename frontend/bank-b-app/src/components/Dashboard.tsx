@@ -94,8 +94,9 @@ export const Dashboard: React.FC<{ onBalanceChange: () => void }> = ({
       setToAccount('BB-00000002');
       setTransferAmount(50);
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Transfer failed';
-      toast.error(Array.isArray(msg) ? msg.join(', ') : msg);
+      const raw = err.response?.data?.message;
+      const msg = Array.isArray(raw) ? raw.join(', ') : typeof raw === 'string' ? raw : 'Transfer failed';
+      toast.error(msg);
     } finally {
       setTransferring(false);
     }
@@ -159,8 +160,9 @@ export const Dashboard: React.FC<{ onBalanceChange: () => void }> = ({
       setDecodedKhqr(null);
       setActiveTab('overview');
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Payment failed';
-      toast.error(Array.isArray(msg) ? msg.join(', ') : msg);
+      const raw = err.response?.data?.message;
+      const msg = Array.isArray(raw) ? raw.join(', ') : typeof raw === 'string' ? raw : 'Payment failed';
+      toast.error(msg);
     } finally {
       setPaying(false);
     }
